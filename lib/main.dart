@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Firebase Auth App',
+        title: 'Personal',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           appBarTheme: AppBarTheme(
