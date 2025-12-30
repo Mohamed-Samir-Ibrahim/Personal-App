@@ -3,6 +3,7 @@ import 'package:personal_app/models/user_model.dart';
 import 'package:personal_app/screens/home_screen.dart';
 import 'package:personal_app/services/auth_service.dart';
 import 'package:personal_app/services/secure_storage_service.dart';
+import 'package:personal_app/services/theme_provider.dart';
 import 'package:personal_app/widget/custom_button.dart';
 import 'package:personal_app/widget/custom_text_form_field.dart';
 import 'package:provider/provider.dart';
@@ -70,55 +71,81 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-
     return Scaffold(
-      appBar: AppBar(title: Text(_isLogin ? 'Login' : 'Create Account')),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            SizedBox(height: 40),
-            if (_isLogin)
-              _buildLoginForm(authService)
-            else
-              _buildRegisterForm(authService),
-
-            SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _isLogin
-                      ? 'Don\'t have an account?'
-                      : 'Already have an account',
-                  style: TextStyle(fontSize: 16),
+      appBar: AppBar(
+        title: Text(_isLogin ? 'Login' : 'Create Account'),
+        actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                  color: Colors.white,
                 ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _isLogin = !_isLogin;
-                    });
-                  },
-                  child: Text(
-                    _isLogin ? 'Create Account' : 'Login',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      body: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return Container(
+            color: themeProvider.backgroundColor,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  SizedBox(height: 40),
+                  if (_isLogin)
+                    _buildLoginForm(authService, themeProvider)
+                  else
+                    _buildRegisterForm(authService, themeProvider),
+
+                  SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isLogin
+                            ? 'Don\'t have an account?'
+                            : 'Already have an account',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: themeProvider.textColor,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _isLogin = !_isLogin;
+                          });
+                        },
+                        child: Text(
+                          _isLogin ? 'Create Account' : 'Login',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: themeProvider.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
 
-            SizedBox(height: 20),
-          ],
-        ),
+                  SizedBox(height: 20),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildLoginForm(AuthService authService) {
+  Widget _buildLoginForm(AuthService authService, ThemeProvider themeProvider) {
     return Form(
       key: _loginFormKey,
       child: Column(
@@ -126,7 +153,9 @@ class _AuthScreenState extends State<AuthScreen> {
           CustomTextFormField(
             controller: _loginEmailController,
             labelText: 'Email',
-            prefixIcon: Icon(Icons.email),
+            prefixIcon: Icon(Icons.email, color: themeProvider.primaryColor),
+            fillColor: themeProvider.cardColor,
+            labelColor: themeProvider.textColor,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
@@ -142,7 +171,9 @@ class _AuthScreenState extends State<AuthScreen> {
           CustomTextFormField(
             controller: _loginPasswordController,
             labelText: 'Password',
-            prefixIcon: Icon(Icons.lock),
+            prefixIcon: Icon(Icons.lock, color: themeProvider.primaryColor),
+            fillColor: themeProvider.cardColor,
+            labelColor: themeProvider.textColor,
             obscureText: isPassword,
             suffixIcon: IconButton(
               onPressed: () {
@@ -153,7 +184,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       : Icons.visibility_outlined;
                 });
               },
-              icon: Icon(suffixIcon),
+              icon: Icon(suffixIcon, color: themeProvider.secondaryTextColor),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -185,85 +216,88 @@ class _AuthScreenState extends State<AuthScreen> {
           _isLoading
               ? CircularProgressIndicator()
               : SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: CustomButton(
-              onPressed: () async {
-                if (_loginFormKey.currentState!.validate()) {
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  try {
-                    UserModel? user = await authService
-                        .signInWithEmailAndPassword(
-                      email: _loginEmailController.text,
-                      password: _loginPasswordController.text,
-                    );
-                    setState(() {
-                      _isLoading = false;
-                    });
+                  width: double.infinity,
+                  height: 50,
+                  child: CustomButton(
+                    onPressed: () async {
+                      if (_loginFormKey.currentState!.validate()) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        try {
+                          UserModel? user = await authService
+                              .signInWithEmailAndPassword(
+                                email: _loginEmailController.text,
+                                password: _loginPasswordController.text,
+                              );
+                          setState(() {
+                            _isLoading = false;
+                          });
 
-                    if (user != null) {
-                      if (isChecked) {
-                        await SecureStorageService.storeEncryptedPassword(
-                          'saved_email',
-                          _loginEmailController.text,
-                        );
-                        await SecureStorageService.storeEncryptedPassword(
-                          'saved_password',
-                          _loginPasswordController.text,
-                        );
-                      } else {
-                        await SecureStorageService.storage.delete(
-                          key: 'saved_email',
-                        );
-                        await SecureStorageService.storage.delete(
-                          key: 'saved_password',
-                        );
+                          if (user != null) {
+                            if (isChecked) {
+                              await SecureStorageService.storeEncryptedPassword(
+                                'saved_email',
+                                _loginEmailController.text,
+                              );
+                              await SecureStorageService.storeEncryptedPassword(
+                                'saved_password',
+                                _loginPasswordController.text,
+                              );
+                            } else {
+                              await SecureStorageService.storage.delete(
+                                key: 'saved_email',
+                              );
+                              await SecureStorageService.storage.delete(
+                                key: 'saved_password',
+                              );
+                            }
+
+                            Fluttertoast.showToast(
+                              msg: 'Login successful.',
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                            );
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HomeScreen(),
+                              ),
+                            );
+                          } else {
+                            Fluttertoast.showToast(
+                              msg: 'login failed',
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.red,
+                            );
+                          }
+                        } catch (e) {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                          Fluttertoast.showToast(
+                            msg: 'Error: $e',
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.red,
+                          );
+                        }
                       }
-
-                      Fluttertoast.showToast(
-                        msg: 'Login successful.',
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                      );
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => HomeScreen(),
-                        ),
-                      );
-                    } else {
-                      Fluttertoast.showToast(
-                        msg: 'login failed',
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        backgroundColor: Colors.red,
-                      );
-                    }
-                  } catch (e) {
-                    setState(() {
-                      _isLoading = false;
-                    });
-                    Fluttertoast.showToast(
-                      msg: 'Error: $e',
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.red,
-                    );
-                  }
-                }
-                print('Password Hashed is ${_passwordController.text}');
-              },
-              child: Text('Login', style: TextStyle(fontSize: 18)),
-            ),
-          ),
+                      print('Password Hashed is ${_passwordController.text}');
+                    },
+                    child: Text('Login', style: TextStyle(fontSize: 18, color: Colors.white)),
+                  ),
+                ),
         ],
       ),
     );
   }
 
-  Widget _buildRegisterForm(AuthService authService) {
+  Widget _buildRegisterForm(
+    AuthService authService,
+    ThemeProvider themeProvider,
+  ) {
     return Form(
       key: _formKey,
       child: Column(
@@ -271,20 +305,24 @@ class _AuthScreenState extends State<AuthScreen> {
           CustomTextFormField(
             controller: _nameController,
             labelText: 'Full Name',
-            prefixIcon: Icon(Icons.person),
+            prefixIcon: Icon(Icons.person, color: themeProvider.primaryColor),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter name';
               }
               return null;
             },
+            fillColor: themeProvider.cardColor,
+            labelColor: themeProvider.textColor,
             type: TextInputType.name,
           ),
           SizedBox(height: 15),
           CustomTextFormField(
             controller: _emailController,
             labelText: 'Email',
-            prefixIcon: Icon(Icons.email),
+            prefixIcon: Icon(Icons.email, color: themeProvider.primaryColor),
+            fillColor: themeProvider.cardColor,
+            labelColor: themeProvider.textColor,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
@@ -301,6 +339,9 @@ class _AuthScreenState extends State<AuthScreen> {
             decoration: InputDecoration(
               labelText: 'Phone number',
               border: OutlineInputBorder(),
+              labelStyle: TextStyle(color: themeProvider.textColor),
+              filled: true,
+              fillColor: themeProvider.cardColor,
             ),
             initialCountryCode: 'EG',
             onChanged: (phone) {
@@ -318,7 +359,9 @@ class _AuthScreenState extends State<AuthScreen> {
           CustomTextFormField(
             controller: _passwordController,
             labelText: 'Password',
-            prefixIcon: Icon(Icons.lock),
+            prefixIcon: Icon(Icons.lock, color: themeProvider.primaryColor),
+            fillColor: themeProvider.cardColor,
+            labelColor: themeProvider.textColor,
             obscureText: isRegisterPassword,
             suffixIcon: IconButton(
               onPressed: () {
@@ -329,7 +372,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       : Icons.visibility_outlined;
                 });
               },
-              icon: Icon(suffixRegisterIcon),
+              icon: Icon(
+                suffixRegisterIcon,
+                color: themeProvider.secondaryTextColor,
+              ),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -346,7 +392,9 @@ class _AuthScreenState extends State<AuthScreen> {
           CustomTextFormField(
             controller: _confirmPasswordController,
             labelText: 'Confirm password',
-            prefixIcon: Icon(Icons.lock),
+            prefixIcon: Icon(Icons.lock, color: themeProvider.primaryColor),
+            fillColor: themeProvider.cardColor,
+            labelColor: themeProvider.textColor,
             obscureText: isRegisterConfirmPassword,
             suffixIcon: IconButton(
               onPressed: () {
@@ -357,7 +405,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       : Icons.visibility_outlined;
                 });
               },
-              icon: Icon(suffixRegisterConfirmIcon),
+              icon: Icon(
+                suffixRegisterConfirmIcon,
+                color: themeProvider.secondaryTextColor,
+              ),
             ),
             validator: (value) {
               if (value != _passwordController.text) {
@@ -431,7 +482,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                     child: Text(
                       'Create Account',
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 18, color: Colors.white),
                     ),
                   ),
                 ),
