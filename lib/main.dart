@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:personal_app/screens/auth_wrapper.dart';
+import 'package:personal_app/services/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:personal_app/services/auth_service.dart';
 import 'package:personal_app/models/user_model.dart';
@@ -18,6 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => AuthService()),
         StreamProvider<UserModel?>(
           create: (context) => context.read<AuthService>().currentUserStream,
@@ -25,31 +27,17 @@ class MyApp extends StatelessWidget {
           catchError: (_, err) => null,
         ),
       ],
-      child: MaterialApp(
-        title: 'Personal',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          appBarTheme: AppBarTheme(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            elevation: 4,
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-        ),
-        debugShowCheckedModeBanner: false,
-        home: AuthWrapper(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Personal',
+            theme: themeProvider.lightTheme,
+            darkTheme: themeProvider.darkTheme,
+            themeMode: themeProvider.themeMode,
+            debugShowCheckedModeBanner: false,
+            home: AuthWrapper(),
+          );
+        },
       ),
     );
   }
