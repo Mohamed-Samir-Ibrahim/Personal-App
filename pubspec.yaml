@@ -49,6 +49,7 @@ dependencies:
   encrypt:
   flutter_secure_storage:
   flutter_svg:
+  shared_preferences:
 #  flutter_native_splash:
 #flutter_native_splash:
 #  color: "#ffffff"

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:personal_app/models/user_model.dart';
 import 'package:personal_app/services/auth_service.dart';
+import 'package:personal_app/services/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -40,115 +41,276 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Profile'),
-        actions: [
-          IconButton(
-            icon: Icon(_isEditing ? Icons.save : Icons.edit),
-            onPressed: () {
-              if (_isEditing) {
-                _saveChanges(authService);
-              } else {
-                setState(() {
-                  _isEditing = true;
-                });
-              }
-            },
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Profile', style: TextStyle(color: Colors.white)),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  _isEditing ? Icons.save : Icons.edit,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  if (_isEditing) {
+                    _saveChanges(authService);
+                  } else {
+                    setState(() {
+                      _isEditing = true;
+                    });
+                  }
+                },
+              ),
+            ],
           ),
-        ],
-      ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Form(
+          body: _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      themeProvider.primaryColor,
+                    ),
+                  ),
+                )
+              : Container(
+                  color: themeProvider.backgroundColor,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            labelText: 'Name',
-                            prefixIcon: Icon(Icons.person),
-                            border: OutlineInputBorder(),
-                            enabled: _isEditing,
+                        Form(
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _nameController,
+                                style: TextStyle(
+                                  color: themeProvider.textColor,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: 'Name',
+                                  labelStyle: TextStyle(
+                                    color: themeProvider.secondaryTextColor,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.person,
+                                    color: themeProvider.primaryColor,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  enabled: _isEditing,
+                                  filled: true,
+                                  fillColor: themeProvider.cardColor,
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: themeProvider.primaryColor,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: themeProvider.secondaryTextColor
+                                          .withValues(alpha: 0.3),
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  disabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: themeProvider.secondaryTextColor
+                                          .withValues(alpha: 0.1),
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: 15),
+
+                              TextFormField(
+                                controller: _emailController,
+                                style: TextStyle(
+                                  color: themeProvider.textColor,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: 'Email',
+                                  labelStyle: TextStyle(
+                                    color: themeProvider.secondaryTextColor,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.email,
+                                    color: themeProvider.primaryColor,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  enabled: false,
+                                  filled: true,
+                                  fillColor: themeProvider.cardColor.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                  disabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: themeProvider.secondaryTextColor
+                                          .withValues(alpha: 0.1),
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: 15),
+
+                              TextFormField(
+                                controller: _phoneController,
+                                style: TextStyle(
+                                  color: themeProvider.textColor,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: 'Phone Number',
+                                  labelStyle: TextStyle(
+                                    color: themeProvider.secondaryTextColor,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.phone,
+                                    color: themeProvider.primaryColor,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  enabled: _isEditing,
+                                  filled: true,
+                                  fillColor: themeProvider.cardColor,
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: themeProvider.primaryColor,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: themeProvider.secondaryTextColor
+                                          .withValues(alpha: 0.3),
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.phone,
+                              ),
+
+                              SizedBox(height: 15),
+
+                              if (_isEditing)
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      _saveChanges(authService);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).appBarTheme.backgroundColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Update Profile',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: themeProvider.textColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
 
-                        SizedBox(height: 15),
+                        SizedBox(height: 30),
 
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email),
-                            border: OutlineInputBorder(),
-                            enabled: false,
+                        Card(
+                          elevation: 3,
+                          color: themeProvider.cardColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(15),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Account Information',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: themeProvider.textColor,
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.date_range,
+                                    color: themeProvider.primaryColor,
+                                  ),
+                                  title: Text(
+                                    'Creation Date',
+                                    style: TextStyle(
+                                      color: themeProvider.secondaryTextColor,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    widget.user.createdAt != null
+                                        ? '${widget.user.createdAt!.day}/${widget.user.createdAt!.month}/${widget.user.createdAt!.year}'
+                                        : 'Unknown',
+                                    style: TextStyle(
+                                      color: themeProvider.textColor,
+                                    ),
+                                  ),
+                                ),
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.security,
+                                    color: themeProvider.primaryColor,
+                                  ),
+                                  title: Text(
+                                    'User ID',
+                                    style: TextStyle(
+                                      color: themeProvider.secondaryTextColor,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    widget.user.uid ?? 'Unknown',
+                                    style: TextStyle(
+                                      color: themeProvider.textColor,
+                                      fontSize: 12,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
 
-                        SizedBox(height: 15),
-
-                        TextFormField(
-                          controller: _phoneController,
-                          decoration: InputDecoration(
-                            labelText: 'Phone Number',
-                            prefixIcon: Icon(Icons.phone),
-                            border: OutlineInputBorder(),
-                            enabled: _isEditing,
-                          ),
-                          keyboardType: TextInputType.phone,
-                        ),
-
-                        SizedBox(height: 15),
+                        SizedBox(height: 20),
                       ],
                     ),
                   ),
-
-                  SizedBox(height: 30),
-
-                  Card(
-                    elevation: 3,
-                    child: Padding(
-                      padding: EdgeInsets.all(15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Account Information',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          ListTile(
-                            leading: Icon(Icons.date_range),
-                            title: Text('Creation Date'),
-                            subtitle: Text(
-                              widget.user.createdAt != null
-                                  ? '${widget.user.createdAt!.day}/${widget.user.createdAt!.month}/${widget.user.createdAt!.year}'
-                                  : 'Unknown',
-                            ),
-                          ),
-                          ListTile(
-                            leading: Icon(Icons.security),
-                            title: Text('User ID'),
-                            subtitle: Text(
-                              widget.user.uid ?? 'Unknown',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+        );
+      },
     );
   }
 
