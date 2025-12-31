@@ -2,6 +2,6 @@
 
 A Personal Flutter Application.
 
-https://github.com/user-attachments/assets/d71acf1b-1cbb-4849-ac9a-e1aa713f4113
+https://github.com/user-attachments/assets/1f0c5e90-72a4-461e-b306-892bb30ec972
 
 apk: https://drive.google.com/file/d/1wnXF4r0Xyf0Ku_9pdC2TdX77DZY-MGr6/view?usp=drive_link
