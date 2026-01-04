@@ -40,7 +40,7 @@ dependencies:
   cloud_firestore:
 
   # Additional dependencies
-  provider:
+  provider: ^6.1.5+1
   image_picker:
   fluttertoast:
   intl_phone_field:
@@ -50,6 +50,11 @@ dependencies:
   flutter_secure_storage:
   flutter_svg:
   shared_preferences:
+  cloudinary_flutter:
+  http:
+  flutter_image_compress:
+  path_provider:
+  flutter_dotenv:
 #  flutter_native_splash:
 #flutter_native_splash:
 #  color: "#ffffff"

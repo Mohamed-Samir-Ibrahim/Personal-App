@@ -3,6 +3,7 @@ class UserModel {
   String? name;
   String? email;
   String? phone;
+  String? profileImageUrl;
   DateTime? createdAt;
 
   UserModel({
@@ -10,6 +11,7 @@ class UserModel {
     this.name,
     this.email,
     this.phone,
+    this.profileImageUrl,
     this.createdAt,
   });
 
@@ -20,6 +22,7 @@ class UserModel {
       name: map['name'],
       email: map['email'],
       phone: map['phone'],
+      profileImageUrl: map['profileImageUrl'],
       createdAt: map['createdAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['createdAt'])
           : null,
@@ -33,6 +36,7 @@ class UserModel {
       'name': name,
       'email': email,
       'phone': phone,
+      'profileImageUrl': profileImageUrl,
       'createdAt': createdAt?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch,
     };
   }
