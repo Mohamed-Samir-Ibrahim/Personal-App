@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:personal_app/models/user_model.dart';
 import 'package:personal_app/services/encrypt_decrypt_service.dart';
@@ -37,7 +37,7 @@ class AuthService extends ChangeNotifier {
     required String email,
     required String password,
     required String phone,
-    String? imageUrl,
+    String? profileImageUrl,
   }) async {
     try {
       final hashedPassword = EncryptionService.hashPassword(password);
@@ -54,6 +54,7 @@ class AuthService extends ChangeNotifier {
         name: name.trim(),
         email: email.trim(),
         phone: phone,
+        profileImageUrl: profileImageUrl,
         createdAt: DateTime.now(),
       );
 
@@ -123,18 +124,55 @@ class AuthService extends ChangeNotifier {
     });
   }
 
+  // services/auth_service.dart - أضف هذه الدالة
+  Future<bool> updateProfileImage(String userId, String imageUrl) async {
+    try {
+      // تحديث في Firestore
+      await _firestore.collection('users').doc(userId).update({
+        'profileImageUrl': imageUrl,
+        'updatedAt': DateTime.now().millisecondsSinceEpoch,
+      });
+
+      // تحديث المستخدم الحالي في الذاكرة
+      if (_currentUser != null && _currentUser!.uid == userId) {
+        _currentUser!.profileImageUrl = imageUrl;
+        notifyListeners();
+      }
+
+      return true;
+    } catch (e) {
+      print('Error updating profile image: $e');
+      return false;
+    }
+  }
+
+  // تأكد أن دالة updateUserProfile تدعم تحديث الصورة
   Future<void> updateUserProfile(UserModel user) async {
     try {
-      if (_auth.currentUser != null) {
+      // تحديث display name في Firebase Auth إذا تغير
+      if (_auth.currentUser != null &&
+          _auth.currentUser!.displayName != user.name) {
         await _auth.currentUser!.updateDisplayName(user.name);
       }
 
-      await _firestore.collection('users').doc(user.uid).update(user.toMap());
+      // تحديث بيانات المستخدم في Firestore
+      await _firestore.collection('users').doc(user.uid).update({
+        'name': user.name,
+        'phone': user.phone,
+        'profileImageUrl': user.profileImageUrl,
+        'updatedAt': DateTime.now().millisecondsSinceEpoch,
+      });
 
-      _currentUser = user;
-      notifyListeners();
+      // تحديث المستخدم الحالي في الذاكرة
+      if (_currentUser != null && _currentUser!.uid == user.uid) {
+        _currentUser!.name = user.name;
+        _currentUser!.phone = user.phone;
+        _currentUser!.profileImageUrl = user.profileImageUrl;
+        notifyListeners();
+      }
     } catch (e) {
-      print('Error in edit profile: $e');
+      print('Error updating profile: $e');
+      rethrow;
     }
   }
 }
