@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:personal_app/models/user_model.dart';
 import 'package:personal_app/screens/home_screen.dart';
 import 'package:personal_app/services/auth_service.dart';
+import 'package:personal_app/services/cloudinary_service.dart';
 import 'package:personal_app/services/secure_storage_service.dart';
 import 'package:personal_app/services/theme_provider.dart';
 import 'package:personal_app/widget/custom_button.dart';
@@ -40,11 +43,29 @@ class _AuthScreenState extends State<AuthScreen> {
   bool isRegisterConfirmPassword = true;
   bool isRegisterPassword = true;
   bool isChecked = false;
+  File? _profileImage;
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
     super.initState();
     _loadSavedCredentials();
+  }
+
+  Future<void> _pickProfileImage() async {
+    try {
+      final image = await CloudinaryService.pickImage();
+      if (image != null) {
+        setState(() {
+          _profileImage = image;
+        });
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: 'Error selecting image: $e',
+        backgroundColor: Colors.red,
+      );
+    }
   }
 
   Future<void> _loadSavedCredentials() async {
@@ -301,7 +322,32 @@ class _AuthScreenState extends State<AuthScreen> {
     return Form(
       key: _formKey,
       child: Column(
-        children: [
+        children: [ [
+          GestureDetector(
+            onTap: _pickProfileImage,
+            child: CircleAvatar(
+              radius: 50,
+              backgroundColor: themeProvider.primaryColor.withValues(
+                alpha: 0.1,
+              ),
+              backgroundImage: _profileImage != null
+                  ? FileImage(_profileImage!)
+                  : null,
+              child: _profileImage == null
+                  ? Icon(
+                      Icons.camera_alt,
+                      size: 40,
+                      color: themeProvider.primaryColor,
+                    )
+                  : null,
+            ),
+          ),
+          SizedBox(height: 15),
+          Text(
+            'Add Profile Picture',
+            style: TextStyle(color: themeProvider.secondaryTextColor),
+          ),
+          SizedBox(height: 15),
           CustomTextFormField(
             controller: _nameController,
             labelText: 'Full Name',
@@ -419,7 +465,7 @@ class _AuthScreenState extends State<AuthScreen> {
             type: TextInputType.visiblePassword,
           ),
           SizedBox(height: 20),
-          _isLoading
+          _isLoading || _isUploadingImage
               ? CircularProgressIndicator()
               : SizedBox(
                   width: double.infinity,
@@ -431,6 +477,31 @@ class _AuthScreenState extends State<AuthScreen> {
                           _isLoading = true;
                         });
 
+                        String? imageUrl;
+
+                        // رفع الصورة إذا تم اختيارها
+                        if (_profileImage != null) {
+                          setState(() {
+                            _isUploadingImage = true;
+                          });
+
+                          imageUrl = await CloudinaryService.uploadProfileImage(
+                            _profileImage!,
+                            _emailController.text, // استخدام الإيميل كمعرف مؤقت
+                          );
+
+                          setState(() {
+                            _isUploadingImage = false;
+                          });
+                        }
+
+                        if (imageUrl == null) {
+                          Fluttertoast.showToast(
+                            msg: 'Failed to upload profile image',
+                            backgroundColor: Colors.orange,
+                          );
+                        }
+
                         try {
                           String fullPhone = _countryCode + _phoneNumber;
 
@@ -440,6 +511,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 email: _emailController.text,
                                 password: _passwordController.text,
                                 phone: fullPhone,
+                            profileImageUrl: imageUrl,
                               );
 
                           setState(() {
@@ -480,7 +552,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       }
                       print('Password Hashed is ${_passwordController.text}');
                     },
-                    child: Text(
+                    child: _isUploadingImage
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
                       'Create Account',
                       style: TextStyle(fontSize: 18, color: Colors.white),
                     ),

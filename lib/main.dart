@@ -1,14 +1,18 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:personal_app/firebase_options.dart';
+import 'package:personal_app/models/user_model.dart';
 import 'package:personal_app/screens/auth_wrapper.dart';
+import 'package:personal_app/services/auth_service.dart';
+import 'package:personal_app/services/cloudinary_service.dart';
 import 'package:personal_app/services/theme_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:personal_app/services/auth_service.dart';
-import 'package:personal_app/models/user_model.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await CloudinaryService.testConnection();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,);
   runApp(MyApp());
 }
 
