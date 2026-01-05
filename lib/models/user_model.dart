@@ -15,7 +15,6 @@ class UserModel {
     this.createdAt,
   });
 
-  // تحويل من Map إلى UserModel
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       uid: map['uid'],
@@ -29,7 +28,6 @@ class UserModel {
     );
   }
 
-  // تحويل UserModel إلى Map
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

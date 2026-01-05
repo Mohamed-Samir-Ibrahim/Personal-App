@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:personal_app/models/user_model.dart';
 import 'package:personal_app/screens/home_screen.dart';
 import 'package:personal_app/services/auth_service.dart';
@@ -10,8 +12,6 @@ import 'package:personal_app/services/theme_provider.dart';
 import 'package:personal_app/widget/custom_button.dart';
 import 'package:personal_app/widget/custom_text_form_field.dart';
 import 'package:provider/provider.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -322,7 +322,7 @@ class _AuthScreenState extends State<AuthScreen> {
     return Form(
       key: _formKey,
       child: Column(
-        children: [ [
+        children: [
           GestureDetector(
             onTap: _pickProfileImage,
             child: CircleAvatar(
